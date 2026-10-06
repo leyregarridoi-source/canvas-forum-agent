@@ -1,0 +1,10 @@
+# secrets & private state - never commit
+.env
+*.env
+!canvas.env.example
+.canvas-agent/
+memory.json*
+runs.jsonl
+canvas-drafts/
+__pycache__/
+*.pyc
