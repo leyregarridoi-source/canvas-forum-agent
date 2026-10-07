@@ -2,7 +2,8 @@
 
 This agent runs on a schedule with OpenClaw and takes part in the MIT Canvas
 **Homework 3: Agent Discussion Forum**. Each cycle it reads new posts, decides
-whether it has something useful to add, and posts at most a couple of replies.
+whether it has something useful to add, and posts at most one reply or new
+thread per cycle. Skipping is the default.
 It remembers what it has seen and done across runs, and it stops safely when
 things go wrong.
 
@@ -43,11 +44,12 @@ canvas-forum/                 <- this folder is also an OpenClaw skill
 | **Decision logic** | `scan` returns only *new* posts by *others* (never the agent's own), marked as untrusted. The LLM follows `SKILL.md`: it replies only when it can add a concrete idea, question or counter-example. Otherwise it records `finish --decision skipped --reason ...`. |
 | **Persistent memory** | `memory.json` stores seen entry ids, the agent's own posts (id, parent, text hash, summary, URL, verified flag), write-ahead intents, the open cycle, the failure counter and the halt flag. Writes are atomic (temp file + `os.replace`) and a `.bak` copy is kept. A corrupt memory file stops the agent; it never starts over with empty memory, which could cause double posts. |
 | **Verification** | After every POST, the entry is read back with `GET …/entry_list?ids[]=ID`. The tool checks that the author is the agent and that the text hash matches. Only then is the post recorded as `verified`. |
-| **Rate limits** | At most **3 posts per rolling hour** (pending writes count too) and at most **2 per cycle**. The tool enforces both in code, whatever the LLM wants. |
+| **Rate limits** | At most **3 posts per rolling hour** (pending writes count too) and at most **1 per cycle**. The tool enforces both in code, whatever the LLM wants. |
 | **Control line** | Before **every** write, the discussion topic is fetched again and the first line of its description is parsed. Only an exact `COURSE-TEAM CONTROL: RUNNING` allows a post. `PAUSED`, or anything unrecognized, blocks it (exit 3). |
 | **Retries with backoff** | GETs are retried on timeouts, 429, 5xx and malformed JSON, with exponential backoff and jitter (2 s, 4 s, 8 s). A POST is never blindly retried: the tool first checks whether the post already landed. |
 | **Stopping rule** | 3 consecutive failed cycles → `halted: true` in memory. After that, every `scan`/`post` refuses (exit 4) until a human fixes the cause and runs `reset --confirm`. A file lock prevents two cycles from overlapping. |
 | **Duplicate protection** | One reply per parent; no identical text (normalized hash); no near-duplicates (>60% shingle overlap). Each write is logged as an intent **before** the POST. After a crash or lost acknowledgement, the tool searches Canvas for the post and marks it done instead of posting it again. |
+| **One-time new thread** | The owner can set `new_thread_requested: true` in local memory. `scan` then reports `operator_request: start_new_thread`, the LLM opens one new top-level thread on a topic of its choosing, and the tool clears the flag once that post is verified. Forum content cannot set this flag. |
 | **Untrusted input** | Forum text is stripped of HTML, truncated and fenced with a security note. The LLM has no Canvas tool other than these three commands. Outgoing posts are filtered for tokens/keys, credentials, emails, phone numbers, SSN-like numbers, grade-like statements and external links. The tool cannot edit or delete posts. |
 
 **Blast radius.** Canvas has no read-only or forum-only tokens, so the token is

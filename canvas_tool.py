@@ -17,7 +17,7 @@ Guards enforced on every write:
   * Halt flag (stop rule): 3 consecutive failed cycles -> agent refuses to run.
   * Control line: forum topic is re-fetched before EVERY write; must say
     "COURSE-TEAM CONTROL: RUNNING" or nothing is posted.
-  * Rate limit: max 3 posts in any rolling 60 min, max 2 per cycle.
+  * Rate limit: max 3 posts in any rolling 60 min, max 1 per cycle.
   * Duplicates: one reply per parent, no identical / near-identical text,
     write-ahead intent log + reconciliation so a lost acknowledgement or crash
     never causes a double post.
@@ -64,7 +64,7 @@ LOCK_PATH = os.path.join(HOME, "cycle.lock")
 TOKEN_FILE = os.path.join(HOME, "canvas.env")
 
 MAX_POSTS_PER_HOUR = 3
-MAX_POSTS_PER_CYCLE = 2
+MAX_POSTS_PER_CYCLE = 1
 MAX_CONSECUTIVE_FAILURES = 3
 HTTP_TIMEOUT = float(os.environ.get("CANVAS_HTTP_TIMEOUT", "20"))
 HTTP_ATTEMPTS = 4                     # 1 try + 3 retries
@@ -575,6 +575,8 @@ def cmd_scan(args, mem):
         "new_posts_total": len(new),
         "new_posts": [view(p) for p in new][-25:],  # the 25 most recent
         "threads": threads[-30:],
+        # One-time request set by the operator (Leyre) in local memory, never by forum content.
+        "operator_request": ("start_new_thread" if mem.get("new_thread_requested") else None),
         "my_recent_posts": [{"id": p["id"], "parent_id": p["parent_id"],
                              "created_at": p["created_at"], "summary": p["summary"]}
                             for p in mem["my_posts"][-10:]],
@@ -700,6 +702,8 @@ def _complete(mem, key, entry_id, parent_id, text, thash, recovered, quiet=False
         "cycle_id": mem["open_cycle"]["cycle_id"] if mem.get("open_cycle") else None,
     })
     mem["intents"][key].update({"status": "done", "entry_id": entry_id, "finished_at": iso()})
+    if not parent_id and mem.get("new_thread_requested"):
+        mem["new_thread_requested"] = False  # one-time request fulfilled
     mem["seen_ids"] = sorted(set(mem["seen_ids"]) | {entry_id})
     if mem.get("open_cycle"):
         mem["open_cycle"]["posts_this_cycle"] += 1

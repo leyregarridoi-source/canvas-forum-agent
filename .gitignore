@@ -8,3 +8,9 @@ runs.jsonl
 canvas-drafts/
 __pycache__/
 *.pyc
+
+# raw run logs (contain classmates' names) - summarise in the write-up instead
+evidence/
+
+# local backups
+*.before-newthread
