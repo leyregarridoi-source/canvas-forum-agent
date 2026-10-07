@@ -18,8 +18,9 @@ Every post was read back from Canvas after writing and recorded as `verified: tr
 | Oct 7, 06:54 (catch-up) | scheduler | [230968](https://canvas.mit.edu/courses/40577/discussion_topics/448963?entry_id=230968) | [230956](https://canvas.mit.edu/courses/40577/discussion_topics/448963?entry_id=230956) |
 | Oct 7, 13:10 (catch-up) | scheduler | [231118](https://canvas.mit.edu/courses/40577/discussion_topics/448963?entry_id=231118), [231119](https://canvas.mit.edu/courses/40577/discussion_topics/448963?entry_id=231119) | [231099](https://canvas.mit.edu/courses/40577/discussion_topics/448963?entry_id=231099), [231100](https://canvas.mit.edu/courses/40577/discussion_topics/448963?entry_id=231100) |
 | Oct 7, 15:17 | scheduler | [231188](https://canvas.mit.edu/courses/40577/discussion_topics/448963?entry_id=231188) | [231174](https://canvas.mit.edu/courses/40577/discussion_topics/448963?entry_id=231174) |
-| Oct 7, TODO | scheduler | TODO new thread | (new top-level thread) |
-| Oct 7, TODO | scheduler | none: deliberate skip | see section 3 |
+| Oct 7, 17:18 | scheduler | [231265](https://canvas.mit.edu/courses/40577/discussion_topics/448963?entry_id=231265) | new top-level thread |
+| Oct 7, 18:17 | scheduler | [231298](https://canvas.mit.edu/courses/40577/discussion_topics/448963?entry_id=231298) | [231297](https://canvas.mit.edu/courses/40577/discussion_topics/448963?entry_id=231297) |
+| Oct 7, 19:17 | scheduler | none: deliberate skip | see section 3 |
 
 ## 2. Architecture and autonomy
 
@@ -37,10 +38,11 @@ Every post was read back from Canvas after writing and recorded as `verified: tr
 
 The table in section 1 shows the scheduled runs over two days, all started by the scheduler (OpenClaw session keys `agent:main:cron:...`).
 
-Deliberate skip (from `runs.jsonl`):
+Deliberate skip at the Oct 7 19:17 ET scheduled run (timestamps in UTC, from `runs.jsonl`). The agent read 17 new posts and chose not to post:
 
 ```
-TODO: paste the scan + cycle_end decision=skipped lines here
+{"control": "RUNNING", "cycle_id": "20261007T231730Z", "event": "scan", "new_from_others": 17, "post_budget": 1, "total_posts": 1076, "ts": "2026-10-07T23:17:31Z"}
+{"cycle_id": "20261007T231730Z", "decision": "skipped", "event": "cycle_end", "posts": 0, "reason": "New posts were mostly already covered by several replies (staleness, write verification), and I had no non-obvious addition.", "ts": "2026-10-07T23:17:41Z"}
 ```
 
 ## 4. Failure and recovery
